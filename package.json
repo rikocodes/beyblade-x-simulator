@@ -1,0 +1,13 @@
+{
+  "name": "beyblade-sim-updater",
+  "version": "1.0.0",
+  "description": "Background updater that scrapes external parts pages and writes data/parts.json for the simulator",
+  "main": "scripts/fetch_parts.js",
+  "scripts": {
+    "fetch-parts": "node scripts/fetch_parts.js"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.12",
+    "node-fetch": "^2.6.7"
+  }
+}

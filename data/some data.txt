@@ -1,0 +1,30 @@
+Wizard Rod 9-60 Ball (Durata circa 180s)
+Diametro lama 5 cm
+Diametro rachet 3cm
+Peso Lama 35g
+Peso totale 43g
+Stamina build
+Molto liscio (il rachet da 9 risulta molto liscio, e la lama anche è molto liscia)
+
+Golem Rock 6-60 Wedge (Durata circa 130s)
+Diametro lama 4.5 cm
+Diametro rachet 3.24 cm
+Peso lama 33g
+Peso totale 41g
+Defense build
+Liscio con sporgenze (forma esagonale, con baricentro perfettamente centrale)
+
+Phoenix Wing 1-60 Rush (Durata circa 60s)
+Diametro lama 4.6cm
+Diametro rachet 3.5cm
+Peso lama 39g
+Peso totale 47g
+Attack Build
+Spigoloso conformazione triangolare (Il rachet 1-60 lo sbilancia verso uno dei suoi 3 punti di contatto)
+
+Hover Whyvern 7-60 Jolt (Durata circa  80s)
+Diametro lama 4.8cm
+Diametro Rachet 3.6cm
+Peso lama 35g
+Peso totale 36g
+Balance Build (Sbilanciato su due lati esterni, forma ovale, il rachet 7-60 risulta molto pesante)

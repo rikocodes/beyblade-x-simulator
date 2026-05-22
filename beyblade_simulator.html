@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beyblade X — Physics Simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Mona+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+/* ── DESIGN TOKENS (from DESIGN.md) ─────────────────────────────────── */
+:root {
+  /* Surfaces */
+  --canvas:      #0e0e0e;
+  --surface-1:   #1a1a1a;
+  --surface-2:   #252525;
+  --hairline:    rgba(255,255,255,0.10);
+  --hairline-soft: rgba(255,255,255,0.06);
+  /* Text */
+  --ink:         #ffffff;
+  --ink-muted:   #999999;
+  /* Accent */
+  --accent-blue: #0099ff;
+  /* Gradients (spotlight cards) */
+  --grad-violet: linear-gradient(135deg,#2d1b69 0%,#6b3fa0 50%,#9b59b6 100%);
+  --grad-magenta:linear-gradient(135deg,#6b1a4a 0%,#c0396b 50%,#e05a8a 100%);
+  --grad-orange: linear-gradient(135deg,#6b2d00 0%,#c4611a 50%,#e8874a 100%);
+  --grad-coral:  linear-gradient(135deg,#6b1f1f 0%,#c94040 50%,#e8756a 100%);
+  /* Radius */
+  --r-xs:   4px;
+  --r-sm:   6px;
+  --r-md:   10px;
+  --r-lg:   15px;
+  --r-xl:   20px;
+  --r-xxl:  30px;
+  --r-pill: 100px;
+  /* Spacing */
+  --sp-xs: 8px; --sp-sm: 12px; --sp-md: 15px; --sp-lg: 20px;
+  --sp-xl: 30px; --sp-xxl: 40px; --sp-section: 80px;
+}
+
+/* ── RESET ───────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Inter', 'Mona Sans', sans-serif;
+  font-feature-settings: 'cv01','cv05','cv09','cv11','ss03','ss07','dlig';
+  background: var(--canvas);
+  color: var(--ink);
+  min-height: 100vh;
+  overflow-x: hidden;
+  font-size: 15px;
+  line-height: 1.30;
+  letter-spacing: -0.15px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── TOP NAV ─────────────────────────────────────────────────────────── */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  height: 56px;
+  background: var(--canvas);
+  border-bottom: 1px solid var(--hairline-soft);
+  display: flex; align-items: center;
+  padding: 0 var(--sp-xl);
+  gap: var(--sp-lg);
+}
+.nav-wordmark {
+  font-family: 'Mona Sans', sans-serif;
+  font-size: 16px; font-weight: 700;
+  letter-spacing: -0.8px;
+  color: var(--ink);
+  flex-shrink: 0;
+  display: flex; align-items: center; gap: 8px;
+}
+.nav-wordmark .spin-icon {
+  display: inline-block;
+  animation: spin 7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.nav-center {
+  flex: 1; display: flex; justify-content: center; gap: var(--sp-xl);
+}
+.nav-link {
+  font-size: 14px; font-weight: 500; letter-spacing: -0.14px;
+  color: var(--ink-muted); text-decoration: none; transition: color .15s;
+}
+.nav-link:hover { color: var(--ink); }
+.nav-right { display: flex; gap: var(--sp-sm); align-items: center; }
+
+/* ── BUTTONS (pill only) ─────────────────────────────────────────────── */
+.btn-primary {
+  background: var(--ink); color: var(--canvas);
+  border: none; cursor: pointer;
+  font-family: inherit; font-size: 14px; font-weight: 500; letter-spacing: -0.14px;
+  padding: 10px 15px; border-radius: var(--r-pill);
+  transition: transform .1s; white-space: nowrap; line-height: 1;
+}
+.btn-primary:active { transform: scale(0.97); }
+.btn-secondary {
+  background: var(--surface-1); color: var(--ink);
+  border: none; cursor: pointer;
+  font-family: inherit; font-size: 14px; font-weight: 500; letter-spacing: -0.14px;
+  padding: 10px 15px; border-radius: var(--r-pill);
+  transition: background .15s; white-space: nowrap; line-height: 1;
+}
+.btn-secondary:hover { background: var(--surface-2); }
+.btn-simulate {
+  width: 100%;
+  background: var(--ink); color: var(--canvas);
+  border: none; cursor: pointer;
+  font-family: inherit; font-size: 14px; font-weight: 500; letter-spacing: -0.14px;
+  padding: 14px 20px; border-radius: var(--r-pill);
+  margin-top: var(--sp-lg);
+  transition: transform .1s, opacity .15s;
+}
+.btn-simulate:active { transform: scale(0.98); }
+.btn-simulate.running { opacity: 0.5; pointer-events: none; }
+
+/* ── PAGE LAYOUT ─────────────────────────────────────────────────────── */
+.page-wrap {
+  max-width: 1199px;
+  margin: 0 auto;
+  padding: 0 var(--sp-xl);
+}
+
+/* ── HERO BAND ───────────────────────────────────────────────────────── */
+.hero {
+  padding: 64px 0 48px;
+  border-bottom: 1px solid var(--hairline-soft);
+}
+.hero-eyebrow {
+  font-size: 13px; font-weight: 500; letter-spacing: -0.13px;
+  color: var(--ink-muted);
+  margin-bottom: var(--sp-lg);
+  text-transform: uppercase;
+}
+.hero-display {
+  font-family: 'Mona Sans', 'Inter', sans-serif;
+  font-size: clamp(42px, 6vw, 85px);
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: -4.25px;
+  color: var(--ink);
+  margin-bottom: var(--sp-xl);
+  max-width: 700px;
+}
+.hero-sub {
+  font-size: 18px; font-weight: 400; line-height: 1.30;
+  letter-spacing: -0.18px;
+  color: var(--ink-muted);
+  max-width: 480px;
+  margin-bottom: var(--sp-xxl);
+}
+.hero-actions { display: flex; gap: var(--sp-sm); flex-wrap: wrap; align-items: center; }
+
+/* ── PRESET PILLS (tab row) ──────────────────────────────────────────── */
+.preset-strip {
+  display: flex; gap: var(--sp-xs); padding: var(--sp-xl) 0 0;
+  flex-wrap: wrap;
+}
+.hero-actions .preset-strip { padding: 0; margin-left: 6px; }
+.preset-pill {
+  background: var(--canvas); color: var(--ink-muted);
+  border: none; cursor: pointer;
+  font-family: inherit; font-size: 14px; font-weight: 500; letter-spacing: -0.14px;
+  padding: 8px 16px; border-radius: var(--r-pill);
+  border: 1px solid var(--hairline);
+  transition: background .15s, color .15s;
+}
+.preset-pill:hover { background: var(--surface-1); color: var(--ink); }
+.preset-pill.active { background: var(--surface-2); color: var(--ink); border-color: transparent; }
+
+/* ── MAIN GRID ───────────────────────────────────────────────────────── */
+.sim-grid {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: var(--sp-xl);
+  padding: var(--sp-xl) 0 var(--sp-section);
+  align-items: start;
+}
+@media (max-width: 810px) {
+  .sim-grid { grid-template-columns: 1fr; }
+  .hero-display { letter-spacing: -2.5px; }
+}
+
+/* ── INPUT PANEL (surface-1 card) ────────────────────────────────────── */
+.input-card {
+  background: var(--surface-1);
+  border-radius: var(--r-xl);
+  padding: var(--sp-xl);
+  border: 1px solid var(--hairline-soft);
+}
+.section-eyebrow {
+  font-size: 13px; font-weight: 500; letter-spacing: -0.13px;
+  color: var(--ink-muted); text-transform: uppercase;
+  margin-bottom: var(--sp-sm);
+  padding-top: var(--sp-xl);
+  border-top: 1px solid var(--hairline-soft);
+}
+.section-eyebrow:first-child { padding-top: 0; border-top: none; }
+
+/* field */
+.field { margin-bottom: var(--sp-md); }
+.field-label-row {
+  display: flex; align-items: center; gap: 6px;
+  margin-bottom: 7px;
+}
+.field-label {
+  font-size: 13px; font-weight: 500; letter-spacing: -0.13px;
+  color: var(--ink-muted);
+}
+.field-row { display: flex; gap: 8px; align-items: center; }
+input[type="number"], select {
+  flex: 1;
+  background: var(--surface-2);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  color: var(--ink);
+  font-family: inherit; font-size: 15px; font-weight: 400;
+  letter-spacing: -0.15px;
+  padding: 10px 14px;
+  outline: none;
+  transition: box-shadow .15s;
+  min-width: 0;
+  appearance: auto;
+}
+input[type="number"]:focus, select:focus {
+  box-shadow: 0 0 0 1px rgba(0,153,255,0.5);
+  border-color: transparent;
+}
+.unit-tag {
+  font-size: 12px; font-weight: 400; letter-spacing: -0.12px;
+  color: var(--ink-muted);
+  min-width: 36px;
+}
+
+/* ── INFO TOOLTIP ────────────────────────────────────────────────────── */
+.info-btn {
+  width: 16px; height: 16px; border-radius: var(--r-pill);
+  background: var(--surface-2); border: 1px solid var(--hairline);
+  color: var(--ink-muted);
+  font-size: 10px; font-weight: 700;
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: default; position: relative; flex-shrink: 0;
+  font-family: 'Inter', monospace; line-height: 1;
+}
+.info-btn:hover { background: var(--surface-2); border-color: var(--accent-blue); }
+.tooltip-popup {
+  display: none; position: absolute;
+  bottom: calc(100% + 10px); left: 50%; transform: translateX(-50%);
+  background: var(--surface-2);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-xl);
+  padding: var(--sp-md) var(--sp-md);
+  width: 230px;
+  font-size: 13px; line-height: 1.5; letter-spacing: -0.13px;
+  color: var(--ink-muted);
+  z-index: 200; pointer-events: none;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+.tooltip-popup::after {
+  content: ''; position: absolute;
+  top: 100%; left: 50%; transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--surface-2);
+}
+.tt-title { font-weight: 700; color: var(--ink); display: block; margin-bottom: 4px; }
+.tt-fx { font-size: 12px; color: var(--accent-blue); margin-top: 5px; display: block; letter-spacing: -0.12px; }
+.info-btn:hover .tooltip-popup { display: block; }
+
+/* ── BIT SELECTOR GRID ───────────────────────────────────────────────── */
+.bit-grid {
+  display: grid; grid-template-columns: repeat(3,1fr);
+  gap: 6px; margin-bottom: var(--sp-md);
+}
+.bit-opt {
+  background: var(--surface-2); border: 1px solid var(--hairline);
+  border-radius: var(--r-lg); padding: 10px 6px;
+  text-align: center; cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.bit-opt:hover { border-color: rgba(255,255,255,0.25); }
+.bit-opt.active { border-color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.06); }
+.bit-opt .bi { font-size: 18px; display: block; margin-bottom: 4px; }
+.bit-opt .bn {
+  font-size: 11px; font-weight: 500; letter-spacing: -0.11px;
+  color: var(--ink-muted); text-transform: uppercase;
+}
+.bit-opt.active .bn { color: var(--ink); }
+
+/* ── RIGHT COLUMN ────────────────────────────────────────────────────── */
+.right-col { display: flex; flex-direction: column; gap: var(--sp-lg); }
+
+/* ── METRICS ROW (spotlight card + stat cards) ───────────────────────── */
+.metrics-band {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-lg);
+}
+.spotlight-card {
+  border-radius: var(--r-xxl);
+  padding: var(--sp-xl);
+  min-height: 180px;
+  display: flex; flex-direction: column; justify-content: space-between;
+  position: relative; overflow: hidden;
+}
+.spotlight-card.violet  { background: var(--grad-violet); }
+.spotlight-card.magenta { background: var(--grad-magenta); }
+.spotlight-card.orange  { background: var(--grad-orange); }
+.spotlight-card.coral   { background: var(--grad-coral); }
+.spotlight-label {
+  font-size: 13px; font-weight: 500; letter-spacing: -0.13px;
+  color: rgba(255,255,255,0.65); text-transform: uppercase;
+}
+.spotlight-value {
+  font-family: 'Mona Sans','Inter',sans-serif;
+  font-size: 42px; font-weight: 700;
+  line-height: 1.00; letter-spacing: -2px;
+  color: #ffffff;
+}
+.spotlight-unit { font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.6); margin-top: 2px; }
+
+/* small stat grid */
+.stat-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.stat-card {
+  background: var(--surface-1);
+  border: 1px solid var(--hairline-soft);
+  border-radius: var(--r-xl);
+  padding: var(--sp-md) var(--sp-md);
+}
+.stat-label {
+  font-size: 12px; font-weight: 500; letter-spacing: -0.12px;
+  color: var(--ink-muted); text-transform: uppercase;
+  margin-bottom: 5px;
+}
+.stat-value {
+  font-family: 'Mona Sans','Inter',sans-serif;
+  font-size: 22px; font-weight: 700;
+  letter-spacing: -1.0px; color: var(--ink); line-height: 1;
+}
+.stat-unit { font-size: 11px; color: var(--ink-muted); margin-top: 3px; }
+
+/* ── CHARTS CARD ─────────────────────────────────────────────────────── */
+.charts-card {
+  background: var(--surface-1);
+  border: 1px solid var(--hairline-soft);
+  border-radius: var(--r-xl);
+  overflow: hidden;
+}
+.tabs-strip {
+  display: flex; border-bottom: 1px solid var(--hairline-soft);
+  padding: 0 var(--sp-lg);
+  gap: 4px;
+}
+.tab-pill {
+  font-size: 13px; font-weight: 500; letter-spacing: -0.13px;
+  color: var(--ink-muted); background: transparent; border: none;
+  padding: var(--sp-md) var(--sp-md); cursor: pointer;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  transition: color .15s; line-height: 1;
+}
+.tab-pill:hover { color: var(--ink); }
+.tab-pill.active { color: var(--ink); border-bottom-color: var(--ink); }
+.tab-pane { display: none; padding: var(--sp-xl); }
+.tab-pane.active { display: block; }
+.chart-wrap { position: relative; width: 100%; height: 240px; }
+
+/* ── RATINGS CARD ────────────────────────────────────────────────────── */
+.ratings-layout {
+  display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-xl);
+  align-items: start;
+}
+.ratings-title {
+  font-size: 13px; font-weight: 500; letter-spacing: -0.13px;
+  color: var(--ink-muted); text-transform: uppercase;
+  margin-bottom: var(--sp-md);
+}
+.rbar-row { display: flex; align-items: center; gap: var(--sp-sm); margin-bottom: 10px; }
+.rbar-name { font-size: 13px; font-weight: 500; letter-spacing: -0.13px; color: var(--ink-muted); min-width: 68px; }
+.rbar-bg { flex: 1; height: 3px; background: var(--hairline); border-radius: 99px; overflow: hidden; }
+.rbar-fill { height: 100%; border-radius: 99px; width: 0%; transition: width 0.9s cubic-bezier(0.16,1,0.3,1); }
+.rbar-score { font-size: 13px; font-weight: 500; letter-spacing: -0.13px; color: var(--ink-muted); min-width: 28px; text-align: right; }
+
+/* score ring */
+.score-center { text-align: center; }
+.score-ring-wrap { position: relative; width: 96px; height: 96px; margin: 0 auto var(--sp-md); }
+.score-ring-wrap svg { transform: rotate(-90deg); }
+.score-text-inner { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.score-num {
+  font-family: 'Mona Sans','Inter',sans-serif;
+  font-size: 28px; font-weight: 700; letter-spacing: -1.5px;
+  color: var(--ink); line-height: 1;
+}
+.score-grade { font-size: 12px; font-weight: 500; color: var(--ink-muted); letter-spacing: -0.12px; }
+.build-type-label { font-size: 13px; font-weight: 500; color: var(--ink-muted); text-transform: uppercase; letter-spacing: -0.13px; margin-bottom: 6px; }
+.build-type-name {
+  font-family: 'Mona Sans','Inter',sans-serif;
+  font-size: 22px; font-weight: 700; letter-spacing: -1.0px; color: var(--ink);
+}
+
+/* ── TIPS BAND ───────────────────────────────────────────────────────── */
+.tips-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap: 8px; }
+.tip-row {
+  background: var(--surface-1);
+  border: 1px solid var(--hairline-soft);
+  border-radius: var(--r-xl);
+  padding: var(--sp-md) var(--sp-md);
+  display: flex; gap: 10px; align-items: flex-start;
+}
+.tip-row.good { border-color: rgba(34,195,122,0.25); }
+.tip-row.warn { border-color: rgba(245,158,11,0.25); }
+.tip-row.bad  { border-color: rgba(239,68,68,0.25); }
+.tip-dot { width: 6px; height: 6px; border-radius: 99px; flex-shrink: 0; margin-top: 5px; }
+.tip-row.good .tip-dot { background: #22c37a; }
+.tip-row.warn .tip-dot { background: #f59e0b; }
+.tip-row.bad  .tip-dot { background: #ef4444; }
+.tip-content { font-size: 14px; line-height: 1.40; letter-spacing: -0.14px; color: var(--ink-muted); }
+.tip-content strong { color: var(--ink); font-weight: 500; display: block; margin-bottom: 2px; }
+
+/* ── EMPTY STATE ─────────────────────────────────────────────────────── */
+.empty-state {
+  min-height: 180px;
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: var(--sp-md);
+  color: var(--ink-muted); text-align: center;
+  font-size: 15px; letter-spacing: -0.15px;
+}
+
+/* ── SECTION DIVIDERS ────────────────────────────────────────────────── */
+.section-title {
+  font-family: 'Mona Sans','Inter',sans-serif;
+  font-size: 32px; font-weight: 700; letter-spacing: -1.0px; color: var(--ink);
+  margin-bottom: var(--sp-xl);
+  line-height: 1.13;
+}
+
+/* scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--hairline); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-wordmark">
+    <span class="spin-icon">⚙️</span>
+    Beyblade<span style="color:var(--ink-muted)"> X</span>
+  </div>
+  <div class="nav-center">
+    <a class="nav-link" href="#" onclick="navTo('simulator');return false">Simulator</a>
+    <a class="nav-link" href="#" onclick="navTo('physics');return false">Physics</a>
+    <a class="nav-link" href="#" onclick="navTo('presets');return false">Presets</a>
+  </div>
+  <div class="nav-right">
+    <button class="btn-secondary" onclick="openDocs()">Beyblade Wiki</button>
+    <button class="btn-primary" onclick="runSimulation()">Run Simulation</button>
+  </div>
+</nav>
+
+<div class="page-wrap">
+
+  <!-- HERO -->
+  <section class="hero">
+    <p class="hero-eyebrow">Physics Simulator · Single Build · V7</p>
+    <h1 class="hero-display">Simulate your Beyblade.</h1>
+    <p class="hero-sub">Model real physics such as inertia, tip friction, aerodynamic drag, and get performance ratings, decay curves, and build tips.</p>
+    <div class="hero-actions">
+      <button class="btn-primary" onclick="runSimulation()">▶ Run Simulation</button>
+      <div class="preset-strip">
+        <button class="preset-pill" onclick="loadPreset('attack',this)">⚔️ Attack</button>
+        <button class="preset-pill" onclick="loadPreset('defense',this)">🛡️ Defense</button>
+        <button class="preset-pill" onclick="loadPreset('stamina',this)">⏱️ Stamina</button>
+        <button class="preset-pill" onclick="loadPreset('balance',this)">⚖️ Balance</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- SIM GRID -->
+  <div class="sim-grid">
+
+    <!-- LEFT: INPUT CARD -->
+    <div class="input-card">
+
+      <!-- BLADE -->
+      <p class="section-eyebrow">Blade</p>
+
+      <div class="field">
+        <div class="field-label-row">
+          <span class="field-label">Massa Blade</span>
+          <span class="info-btn">i
+            <div class="tooltip-popup">
+              <span class="tt-title">Massa Blade</span>
+              Peso metallico della lama. Una massa maggiore aumenta inerzia e forza d'urto, ma riduce la stamina.
+              <span class="tt-fx">↑ Massa → ↑ Attacco, ↓ Stamina</span>
+            </div>
+          </span>
+        </div>
+        <div class="field-row">
+          <input type="number" id="massaBlade" value="35" min="10" max="80" step="0.5">
+          <span class="unit-tag">g</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-label-row">
+          <span class="field-label">Diametro Blade</span>
+          <span class="info-btn">i
+            <div class="tooltip-popup">
+              <span class="tt-title">Diametro Blade</span>
+              Diametro esterno massimo. Maggiore = più momento d'inerzia e stamina più lunga.
+              <span class="tt-fx">↑ Diametro → ↑ Inerzia, ↑ Stamina</span>
+            </div>
+          </span>
+        </div>
+        <div class="field-row">
+          <input type="number" id="diametroBlade" value="48" min="20" max="80" step="1">
+          <span class="unit-tag">mm</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-label-row">
+          <span class="field-label">Altezza Blade</span>
+          <span class="info-btn">i
+            <div class="tooltip-popup">
+              <span class="tt-title">Altezza Blade</span>
+              Spessore verticale della lama. Influisce sull'altezza del baricentro.
+              <span class="tt-fx">↑ Altezza → ↑ Baricentro, ↓ Stabilità</span>
+            </div>
+          </span>
+        </div>
+        <div class="field-row">
+          <input type="number" id="altezzaBlade" value="10" min="3" max="30" step="1">
+          <span class="unit-tag">mm</span>
+        </div>
+      </div>
+
+      <!-- RATCHET -->
+      <p class="section-eyebrow">Ratchet</p>
+
+      <div class="field">
+        <div class="field-label-row">
+          <span class="field-label">Diametro Ratchet</span>
+          <span class="info-btn">i
+            <div class="tooltip-popup">
+              <span class="tt-title">Diametro Ratchet</span>
+              Larghezza del componente centrale. Contribuisce al momento d'inerzia totale.
+              <span class="tt-fx">↑ Diametro → ↑ Stabilità rotazionale</span>
+            </div>
+          </span>
+        </div>
+        <div class="field-row">
+          <input type="number" id="diametroRatchet" value="32" min="10" max="60" step="1">
+          <span class="unit-tag">mm</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-label-row">
+          <span class="field-label">Massa Ratchet</span>
+          <span class="info-btn">i
+            <div class="tooltip-popup">
+              <span class="tt-title">Massa Ratchet</span>
+              Peso del ratchet. Più pesante = più inerzia e resistenza al burst.
+              <span class="tt-fx">↑ Massa → ↑ Defense, ↓ Stamina lieve</span>
+            </div>
+          </span>
+        </div>
+        <div class="field-row">
+          <input type="number" id="massaRatchet" value="5" min="1" max="20" step="0.5">
+          <span class="unit-tag">g</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-label-row">
+          <span class="field-label">Altezza Ratchet</span>
+          <span class="info-btn">i
+            <div class="tooltip-popup">
+              <span class="tt-title">Altezza Ratchet</span>
+              Valori tipici: 60, 70, 80 mm. Valori più alti alzano il baricentro.
+              <span class="tt-fx">60mm = stabile · 80mm = instabile</span>
+            </div>
+          </span>
+        </div>
+        <div class="field-row">
+          <input type="number" id="altezzaRatchet" value="60" min="40" max="90" step="5">
+          <span class="unit-tag">mm</span>
+        </div>
+      </div>
+
+      <!-- BIT -->
+      <p class="section-eyebrow">Bit (Punta)</p>
+
+      <div class="field">
+        <div class="field-label-row">
+          <span class="field-label">Tipo Bit</span>
+          <span class="info-btn">i
+            <div class="tooltip-popup">
+              <span class="tt-title">Tipo Bit</span>
+              La punta è il fattore principale per la stamina — imposta automaticamente il raggio di contatto.
+              <span class="tt-fx">Needle = max stamina · Ball = max stabilità</span>
+            </div>
+          </span>
+        </div>
+        <div class="bit-grid" id="bitGrid">
+          <div class="bit-opt" data-r="0.5" onclick="selectBit(this)"><span class="bi">📍</span><span class="bn">Point</span></div>
+          <div class="bit-opt active" data-r="1" onclick="selectBit(this)"><span class="bi">🔵</span><span class="bn">Flat</span></div>
+          <div class="bit-opt" data-r="2" onclick="selectBit(this)"><span class="bi">⭕</span><span class="bn">Wide</span></div>
+          <div class="bit-opt" data-r="3" onclick="selectBit(this)"><span class="bi">🟤</span><span class="bn">Ball</span></div>
+          <div class="bit-opt" data-r="0.7" onclick="selectBit(this)"><span class="bi">🔺</span><span class="bn">Needle</span></div>
+          <div class="bit-opt" data-r="1.5" onclick="selectBit(this)"><span class="bi">🔷</span><span class="bn">Semi-F</span></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-label-row">
+          <span class="field-label">Raggio Punta</span>
+          <span class="info-btn">i
+            <div class="tooltip-popup">
+              <span class="tt-title">Raggio Punta Contatto</span>
+              Raggio della superficie di contatto col piatto. Parametro critico per la stamina: punta più fine = meno attrito = più durata.
+              <span class="tt-fx">0.5 mm (fine) → ~3× più stamina rispetto a 3 mm (ball)</span>
+            </div>
+          </span>
+        </div>
+        <div class="field-row">
+          <input type="number" id="raggioPunta" value="1" min="0.5" max="5" step="0.1">
+          <span class="unit-tag">mm</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-label-row">
+          <span class="field-label">Altezza Bit</span>
+          <span class="info-btn">i
+            <div class="tooltip-popup">
+              <span class="tt-title">Altezza Bit</span>
+              Altezza della punta. Influisce sulla posizione verticale del baricentro.
+              <span class="tt-fx">↑ Altezza → baricentro più alto, meno stabilità laterale</span>
+            </div>
+          </span>
+        </div>
+        <div class="field-row">
+          <input type="number" id="altezzaBit" value="20" min="5" max="40" step="1">
+          <span class="unit-tag">mm</span>
+        </div>
+      </div>
+
+      <!-- LANCIO -->
+      <p class="section-eyebrow">Lancio</p>
+
+      <div class="field">
+        <div class="field-label-row">
+          <span class="field-label">RPM Lancio</span>
+          <span class="info-btn">i
+            <div class="tooltip-popup">
+              <span class="tt-title">RPM Lancio</span>
+              Velocità di rotazione iniziale. Un buon lancio manuale: 7000–10000 RPM.
+              <span class="tt-fx">↑ RPM → ↑ Energia iniziale, ↑ Forza urto</span>
+            </div>
+          </span>
+        </div>
+        <div class="field-row">
+          <input type="number" id="rpmLancio" value="8000" min="1000" max="15000" step="100">
+          <span class="unit-tag">rpm</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-label-row">
+          <span class="field-label">Resistenza Aria</span>
+          <span class="info-btn">i
+            <div class="tooltip-popup">
+              <span class="tt-title">Resistenza Aria (k)</span>
+              Coefficiente di drag aerodinamico. Dipende dalla forma della lama: spigolosa = più freno.
+              <span class="tt-fx">Liscio 0.1 → poca perdita · Spigoloso 2.0 → decadimento rapido</span>
+            </div>
+          </span>
+        </div>
+        <div class="field-row">
+          <select id="resistenzaAria">
+            <option value="0.1">0.1 — Molto Liscio</option>
+            <option value="0.3">0.3 — Liscio</option>
+            <option value="0.5" selected>0.5 — Normale</option>
+            <option value="1">1.0 — Spigoloso</option>
+            <option value="1.5">1.5 — Molto Spigoloso</option>
+            <option value="2">2.0 — Massimo Drag</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn-simulate" id="btnSim" onclick="runSimulation()">Run Simulation</button>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right-col">
+
+      <!-- TOP METRICS: spotlight + stat grid -->
+      <div class="metrics-band">
+        <!-- SPOTLIGHT (stamina / duration) -->
+        <div class="spotlight-card violet" id="spotlightCard">
+          <span class="spotlight-label">Durata Vita</span>
+          <div>
+            <div class="spotlight-value" id="spotlightVal">—</div>
+            <div class="spotlight-unit" id="spotlightUnit">secondi</div>
+          </div>
+        </div>
+        <!-- STAT MINI GRID -->
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-label">Massa Tot.</div>
+            <div class="stat-value" id="sValMassa">—</div>
+            <div class="stat-unit">g</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Inerzia</div>
+            <div class="stat-value" id="sValI">—</div>
+            <div class="stat-unit">kg·m²</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Baricentro</div>
+            <div class="stat-value" id="sValCoM">—</div>
+            <div class="stat-unit">mm</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Energia Cin.</div>
+            <div class="stat-value" id="sValEk">—</div>
+            <div class="stat-unit">J</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Forza Urto</div>
+            <div class="stat-value" id="sValF">—</div>
+            <div class="stat-unit">N</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Coppia Attrito</div>
+            <div class="stat-value" id="sValTau">—</div>
+            <div class="stat-unit">N·m</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CHARTS CARD -->
+      <div class="charts-card" id="chartsCard" style="display:none">
+        <div class="tabs-strip">
+          <button class="tab-pill active" onclick="switchTab('decay',this)">RPM Decay</button>
+          <button class="tab-pill" onclick="switchTab('energy',this)">Energia</button>
+          <button class="tab-pill" onclick="switchTab('force',this)">Forza</button>
+          <button class="tab-pill" onclick="switchTab('ratings',this)">Ratings</button>
+        </div>
+
+        <div class="tab-pane active" id="tab-decay">
+          <div class="chart-wrap"><canvas id="chartDecay" role="img" aria-label="RPM decay over time"></canvas></div>
+        </div>
+        <div class="tab-pane" id="tab-energy">
+          <div class="chart-wrap"><canvas id="chartEnergy" role="img" aria-label="Kinetic energy over time"></canvas></div>
+        </div>
+        <div class="tab-pane" id="tab-force">
+          <div class="chart-wrap"><canvas id="chartForce" role="img" aria-label="Impact force over time"></canvas></div>
+        </div>
+        <div class="tab-pane" id="tab-ratings">
+          <div class="ratings-layout">
+            <div>
+              <p class="ratings-title">Performance</p>
+              <div id="ratingBars"></div>
+            </div>
+            <div class="score-center">
+              <p class="ratings-title">Score</p>
+              <div class="score-ring-wrap">
+                <svg width="96" height="96" viewBox="0 0 96 96">
+                  <circle cx="48" cy="48" r="40" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="5"/>
+                  <circle cx="48" cy="48" r="40" fill="none" stroke="#fff" stroke-width="5"
+                    stroke-dasharray="251.3" id="scoreCircle" stroke-dashoffset="251.3" stroke-linecap="round"
+                    style="transition:stroke-dashoffset 1s cubic-bezier(0.16,1,0.3,1)"/>
+                </svg>
+                <div class="score-text-inner">
+                  <span class="score-num" id="scoreNum">—</span>
+                  <span class="score-grade" id="scoreGrade">—</span>
+                </div>
+              </div>
+              <p class="build-type-label">Build Type</p>
+              <p class="build-type-name" id="buildTypeName">—</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TIPS -->
+      <div id="tipsWrap" style="display:none">
+        <p class="section-title" style="font-size:22px;letter-spacing:-0.8px;margin-bottom:var(--sp-md);">Consigli</p>
+        <div class="tips-grid" id="tipsGrid"></div>
+      </div>
+
+      <!-- EMPTY STATE -->
+      <div class="empty-state" id="emptyState">
+        <div style="font-size:2.5rem;opacity:0.15">⚙</div>
+        <span>Configura i parametri e avvia la simulazione</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+let chartD, chartE, chartF;
+
+let PRESETS = {
+  attack:  {massaBlade:40,diametroBlade:52,altezzaBlade:8, diametroRatchet:30,massaRatchet:4,altezzaRatchet:60,altezzaBit:15,raggioPunta:2,  rpmLancio:10000,resistenzaAria:'1'},
+  defense: {massaBlade:45,diametroBlade:50,altezzaBlade:12,diametroRatchet:35,massaRatchet:7,altezzaRatchet:70,altezzaBit:20,raggioPunta:2.5,rpmLancio:6000, resistenzaAria:'0.5'},
+  stamina: {massaBlade:32,diametroBlade:46,altezzaBlade:9, diametroRatchet:28,massaRatchet:4,altezzaRatchet:60,altezzaBit:25,raggioPunta:0.5,rpmLancio:7000, resistenzaAria:'0.1'},
+  balance: {massaBlade:35,diametroBlade:48,altezzaBlade:10,diametroRatchet:32,massaRatchet:5,altezzaRatchet:60,altezzaBit:20,raggioPunta:1,  rpmLancio:8000, resistenzaAria:'0.5'},
+};
+
+// meta populated from local data / parts
+const PARTS_META = { avgDuration: null, aeroMultiplier: null };
+
+// Try to load external parts data (produced by scripts/fetch_parts.js)
+async function loadPartsFromServer(){
+  try{
+    const res=await fetch('/data/parts.json', {cache:'no-store'});
+    if(!res.ok) return;
+    const data=await res.json();
+    // merge suggested presets if present
+    if(data.suggestedPresets){
+      Object.keys(data.suggestedPresets).forEach(k=>{
+        if(PRESETS[k]){
+          Object.assign(PRESETS[k], data.suggestedPresets[k]);
+        }
+      });
+    }
+    // map default aerodynamic values if provided
+    if(data.defaults && data.defaults.resistenzaAria){
+      // set select default to nearest option
+      const sel=document.getElementById('resistenzaAria');
+      if(sel){
+        const v=data.defaults.resistenzaAria.toString();
+        // try exact match first, otherwise pick closest
+        let opt=Array.from(sel.options).find(o=>o.value===v);
+        if(!opt){
+          // choose closest numeric
+          let target=parseFloat(v);
+          let best=sel.options[0]; let bestDiff=Infinity;
+          Array.from(sel.options).forEach(o=>{const d=Math.abs(parseFloat(o.value)-target); if(d<bestDiff){bestDiff=d;best=o;}});
+          opt=best;
+        }
+        if(opt) sel.value=opt.value;
+      }
+    }
+  }catch(e){
+    // ignore fetch errors
+    console.warn('Could not load parts.json',e);
+  }
+}
+
+// initial load and periodic refresh every 30 minutes
+loadPartsFromServer();
+setInterval(loadPartsFromServer, 30*60*1000);
+
+// Parse local data file for empirical part data (data/some data.txt)
+async function loadLocalData(){
+  try{
+    const res=await fetch('/data/some%20data.txt', {cache:'no-store'});
+    if(!res.ok) return;
+    const txt=await res.text();
+    // simple parsing to extract entries
+    const lines=txt.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+    const entries=[];
+    for(let i=0;i<lines.length;){
+      const title=lines[i++];
+      const obj={title};
+      while(i<lines.length && lines[i]&& !/Durata/i.test(lines[i]) && !/Diametro lama/i.test(lines[i]) && !/Peso lama/i.test(lines[i])){
+        // advance until we reach numeric lines
+        i++;
+      }
+      // read next up to 5 lines for numeric fields
+      for(let j=0;j<6 && i<lines.length;j++,i++){
+        const l=lines[i];
+        if(/Durata/i.test(l)){
+          const m=l.match(/(\d{1,3})s/); if(m) obj.durata=parseInt(m[1],10);
+          const m2=l.match(/(\d{1,3})/); if(!obj.durata&&m2) obj.durata=parseInt(m2[1],10);
+        }
+        if(/Diametro lama/i.test(l) || /Diametro lama/i.test(l.toLowerCase())){
+          const m=l.match(/([0-9]+\.?[0-9]*)\s*cm/i); if(m) obj.diametroBlade=parseFloat(m[1])*10;
+        }
+        if(/Diametro rachet/i.test(l) || /Diametro rachet/i.test(l.toLowerCase()) || /Diametro Rachet/i.test(l)){
+          const m=l.match(/([0-9]+\.?[0-9]*)\s*cm/i); if(m) obj.diametroRatchet=parseFloat(m[1])*10;
+        }
+        if(/Peso Lama/i.test(l) || /Peso lama/i.test(l)){
+          const m=l.match(/([0-9]+\.?[0-9]*)\s*g/i); if(m) obj.massaBlade=parseFloat(m[1]);
+        }
+        if(/Peso totale/i.test(l)){
+          const m=l.match(/([0-9]+\.?[0-9]*)\s*g/i); if(m) obj.pesoTotale=parseFloat(m[1]);
+        }
+      }
+      entries.push(obj);
+    }
+    // build suggested presets from entries (map durata -> resistenzaAria)
+    const suggested={}; let defaults={};
+    entries.forEach(e=>{
+      if(e.title.toLowerCase().includes('stamina')){
+        suggested.stamina = suggested.stamina || {};
+        if(e.massaBlade) suggested.stamina.massaBlade=e.massaBlade;
+        if(e.diametroBlade) suggested.stamina.diametroBlade=e.diametroBlade;
+        if(e.durata) suggested.stamina._durata=e.durata;
+      }
+      if(e.title.toLowerCase().includes('defense')||e.title.toLowerCase().includes('defence')){
+        suggested.defense = suggested.defense || {};
+        if(e.massaBlade) suggested.defense.massaBlade=e.massaBlade;
+        if(e.diametroBlade) suggested.defense.diametroBlade=e.diametroBlade;
+        if(e.durata) suggested.defense._durata=e.durata;
+      }
+      // generic defaults from known entries
+      if(e.durata && !defaults.avgDuration) defaults.avgDuration=e.durata;
+      if(e.pesoTotale && !defaults.avgPeso) defaults.avgPeso=e.pesoTotale;
+    });
+    // estimate aerodynamic default (lower drag for entries with long duration)
+    if(defaults.avgDuration){
+      const k = Math.max(0.1, Math.min(2.0, 1.2 - (defaults.avgDuration-80)/200));
+      defaults.resistenzaAria = (k).toFixed(2);
+      PARTS_META.avgDuration = defaults.avgDuration;
+      // set aero multiplier: smaller if observed durations are long
+      PARTS_META.aeroMultiplier = Math.max(1e-6, 0.0005 * (120 / PARTS_META.avgDuration));
+    }
+    // merge into PRESETS
+    if(Object.keys(suggested).length) Object.keys(suggested).forEach(k=>{ if(PRESETS[k]) Object.assign(PRESETS[k], suggested[k]); });
+    if(defaults.resistenzaAria){
+      const sel=document.getElementById('resistenzaAria'); if(sel) sel.value=defaults.resistenzaAria;
+    }
+  }catch(e){ console.warn('Could not load local data',e); }
+}
+
+loadLocalData();
+
+function loadPreset(name, btn) {
+  const p = PRESETS[name];
+  for (const [k,v] of Object.entries(p)) {
+    const el=document.getElementById(k);
+    if(!el) continue;
+    // set numeric fields robustly
+    if(el.tagName==='INPUT' || el.tagName==='SELECT'){
+      el.value = String(v);
+    } else {
+      el.textContent = String(v);
+    }
+  }
+  document.querySelectorAll('.preset-pill').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  // activate nearest bit option by radius
+  const targetR = parseFloat(p.raggioPunta);
+  let best=null; let bestDiff=Infinity;
+  document.querySelectorAll('.bit-opt').forEach(b=>{ const r=parseFloat(b.dataset.r); const d=Math.abs(r-targetR); if(d<bestDiff){bestDiff=d;best=b;} b.classList.remove('active'); });
+  if(best) best.classList.add('active');
+  runSimulation();
+}
+
+function selectBit(el) {
+  document.querySelectorAll('.bit-opt').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('raggioPunta').value = el.dataset.r;
+}
+
+function gi(id){ return parseFloat(document.getElementById(id).value); }
+
+function compute() {
+  const mB=gi('massaBlade')/1000, mR=gi('massaRatchet')/1000, mT=mB+mR;
+  const RB=gi('diametroBlade')/2000, RR=gi('diametroRatchet')/2000; // radii in meters
+  const rP=gi('raggioPunta')/1000; // tip contact radius in meters
+  // Approximate moments: blade mostly rim mass (ring-like), ratchet as solid disk
+  const IB=0.90*mB*RB*RB; // blade mass concentrated near rim
+  const IR=0.5*mR*RR*RR;   // ratchet approx (solid cylinder)
+  const I=IB+IR; // total rotational inertia about spin axis (kg·m²)
+  // center of mass height (convert to meters then to mm for display)
+  const hCoM_m=(mB*(gi('altezzaBit')/1000+gi('altezzaRatchet')/1000+gi('altezzaBlade')/2000)+mR*(gi('altezzaBit')/1000+gi('altezzaRatchet')/2000))/mT;
+  const hCoM=hCoM_m*1000; // mm used elsewhere in UI
+  const omega0=gi('rpmLancio')*2*Math.PI/60;
+  const g=9.81;
+  // Tip contact friction - empirical mapping by tip radius
+  // smaller tip -> lower friction coefficient; values tuned to produce realistic spin-downs
+  const rP_mm = rP * 1000;
+  const mu_tip = 0.001 + 0.02 * Math.min(1, rP_mm / 3); // scales with tip size in mm
+  const tauFricBase = mu_tip * mT * g * rP; // Coulomb-like torque at contact
+  // Viscous/dissipative contact (velocity-dependent) - empirical
+  // scale proportional to tip footprint (larger tip -> more viscous damping)
+  // allow very small tips to reduce viscous damping: floor at 0.01 mm
+  const c_contact = 5e-9 * (mT * 1000) * Math.max(rP_mm, 0.01); // N·m·s per rad, rP in mm scale
+  // Aerodynamic drag torque: use Cd scaled from selector and projected area from blade thickness
+  const rho = 1.225; // air density kg/m^3
+  // map UI drag setting to plausible Cd range (scale down)
+  const Cd = Math.max(0.02, Math.min(1.0, parseFloat(document.getElementById('resistenzaAria').value) * 0.12));
+  const bladeThickness = Math.max(0.001, gi('altezzaBlade')/1000); // m
+  // effective frontal area scaled conservatively
+  const A = 0.01 * RB * RB + 0.5 * RB * bladeThickness; // m^2
+  const dt = 0.05, tMax = 300;
+  const tD=[],rD=[],eD=[],fD=[];
+  let omega = omega0, survived = 0;
+  let lastAbove = -1;
+  let stoppedAt = null;
+  for (let t = 0; t <= tMax; t += dt) {
+    if (omega < 0) omega = 0;
+    const rpm = omega * 60 / (2 * Math.PI);
+    tD.push(parseFloat(t.toFixed(2)));
+    rD.push(parseFloat(rpm.toFixed(2)));
+    eD.push(parseFloat((0.5 * I * omega * omega).toFixed(6)));
+    const vTip = omega * RB;
+    // aerodynamic torque (quadratic in v)
+    // apply optional parts-derived multiplier to aero torque
+    // apply optional parts-derived multiplier to aero torque; default small
+    const aeroMult = PARTS_META.aeroMultiplier || 0.0004;
+    const tauAir = 0.5 * rho * Cd * A * vTip * vTip * RB * aeroMult;
+    // viscous contact torque proportional to angular speed
+    const tauVisc = c_contact * omega;
+    const tauFric = tauFricBase;
+    // approximate instantaneous impact force based on centripetal
+    fD.push(parseFloat((mT * vTip * vTip / Math.max(RB, 1e-3)).toFixed(2)));
+    if (rpm > 50) { lastAbove = t; survived = t; stoppedAt = null; }
+    else if (lastAbove>=0 && rpm<=50 && stoppedAt===null) { stoppedAt = t; }
+    // angular acceleration = - (sum torques) / I
+    const alpha = - (tauFric + tauVisc + tauAir) / Math.max(I, 1e-9);
+    omega += alpha * dt;
+  }
+  // if survived is 0 but we noted a stoppedAt, use that; otherwise if survived still 0 but omega decayed slowly, approximate from last non-zero rpm
+  if(survived===0 && stoppedAt!==null) survived = parseFloat(stoppedAt.toFixed(1));
+  if(survived===0 && lastAbove>0) survived = parseFloat(lastAbove.toFixed(1));
+  const ek0=0.5*I*omega0*omega0;
+  const vTip0 = omega0 * RB;
+  const F0 = mT * vTip0 * vTip0 / Math.max(RB, 1e-3);
+  return {
+    mT,
+    I,
+    hCoM,
+    ek0,
+    F0,
+    tauFric: tauFricBase,
+    survived: parseFloat(survived.toFixed(1)),
+    tD, rD, eD, fD, omega0, rP,
+    p: { massaRatchet: gi('massaRatchet'), raggioPunta: gi('raggioPunta'), rpmLancio: gi('rpmLancio'), k: parseFloat(document.getElementById('resistenzaAria').value) }
+  };
+}
+
+function ratings(r){
+  // calibrated score mappings
+  const stamina = Math.min(100, (r.survived / 180) * 100); // 180s maps to 100%
+  const attack = Math.min(100, (r.F0 / 500) * 100); // 500N baseline for strong attack
+  const defense = Math.min(100, (r.mT * 1000 / 80) * 70 + (1 - Math.min(1, r.hCoM / 120)) * 30);
+  const avg=(attack+defense+stamina)/3;
+  const spread=Math.abs(attack-avg)+Math.abs(defense-avg)+Math.abs(stamina-avg);
+  const balance=Math.max(0,100-spread*0.8);
+  // burst resistance: combination of ratchet mass and tip footprint (bigger tip -> more stable)
+  const burst = Math.min(100, (r.p.massaRatchet / 12) * 70 + (Math.min(1, r.rP / 0.003) * 30));
+  return {attack:Math.round(Math.min(100,Math.max(0,attack))),defense:Math.round(Math.min(100,Math.max(0,defense))),stamina:Math.round(Math.min(100,Math.max(0,stamina))),balance:Math.round(Math.min(100,Math.max(0,balance))),burst:Math.round(Math.min(100,Math.max(0,burst)))};
+}
+
+function getBuild(rt){
+  const s=Object.entries(rt).sort((a,b)=>b[1]-a[1])[0][0];
+  return {attack:'⚔️ Attack',defense:'🛡️ Defense',stamina:'⏱️ Stamina',balance:'⚖️ Balance',burst:'💥 Burst'}[s]||'⚖️ Balance';
+}
+
+function tips(r,rt){
+  const out=[];
+  if(r.survived>120) out.push({t:'good',title:'Eccellente Stamina',text:`Durata ${r.survived}s — ottimo per battaglie lunghe.`});
+  else if(r.survived>60) out.push({t:'warn',title:'Stamina Moderata',text:`Durata ${r.survived}s. Prova un bit a punta più fine.`});
+  else out.push({t:'bad',title:'Stamina Bassa',text:`Si ferma a ${r.survived}s. Riduci raggio punta o alleggerisci.`});
+  const rp=r.rP*1000;
+  if(rp<=0.7) out.push({t:'good',title:'Punta Needle / Point',text:'Attrito minimo — massima stamina, meno stabilità nelle collisioni.'});
+  else if(rp>=2.5) out.push({t:'warn',title:'Punta Wide / Ball',text:'Stabilità alta ma perde giri rapidamente. Ideale per defense.'});
+  if(rt.attack>70) out.push({t:'good',title:'Alta Forza Urto',text:`${r.F0.toFixed(1)} N iniziali — può buttare fuori avversari pesanti.`});
+  if(r.hCoM>65) out.push({t:'warn',title:'Baricentro Alto',text:`CoM a ${r.hCoM.toFixed(1)} mm — rischio oscillazione a giri bassi.`});
+  if(r.hCoM<45) out.push({t:'good',title:'Baricentro Basso',text:`CoM a ${r.hCoM.toFixed(1)} mm — ottima stabilità giroscopica.`});
+  if(r.p.rpmLancio>10000) out.push({t:'good',title:'Lancio Potente',text:`${r.p.rpmLancio} RPM — vantaggio nei primi secondi.`});
+  if(r.p.k>1) out.push({t:'bad',title:'Alto Drag Aerodinamico',text:'Profilo spigoloso accelera la perdita di giri.'});
+  return out;
+}
+
+function runSimulation(){
+  const btn=document.getElementById('btnSim');
+  btn.textContent='Calculating…'; btn.classList.add('running');
+  setTimeout(()=>{
+    const r=compute(); const rt=ratings(r);
+    renderMetrics(r); renderCharts(r); renderRatings(r,rt); renderTips(r,rt);
+    document.getElementById('emptyState').style.display='none';
+    document.getElementById('chartsCard').style.display='';
+    document.getElementById('tipsWrap').style.display='';
+    btn.textContent='Run Simulation'; btn.classList.remove('running');
+  },320);
+}
+
+function renderMetrics(r){
+  // spotlight
+  const card=document.getElementById('spotlightCard');
+  const survived=r.survived;
+  // Color of spotlight based on stamina
+  card.className='spotlight-card '+(survived>120?'violet':survived>60?'orange':'coral');
+  document.getElementById('spotlightVal').textContent=survived;
+  // stats
+  document.getElementById('sValMassa').textContent=(r.mT*1000).toFixed(1);
+  document.getElementById('sValI').textContent=r.I.toExponential(2);
+  document.getElementById('sValCoM').textContent=r.hCoM.toFixed(1);
+  document.getElementById('sValEk').textContent=r.ek0.toFixed(3);
+  document.getElementById('sValF').textContent=r.F0.toFixed(1);
+  document.getElementById('sValTau').textContent=r.tauFric.toExponential(2);
+}
+
+const chartCfg=(xl,yl,color)=>({
+  responsive:true, maintainAspectRatio:false,
+  plugins:{legend:{display:false}},
+  scales:{
+    x:{title:{display:true,text:xl,color:'#555',font:{size:11}},ticks:{color:'#555',maxTicksLimit:10},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.06)'}},
+    y:{title:{display:true,text:yl,color:'#555',font:{size:11}},ticks:{color:'#555'},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.06)'}}
+  }
+});
+
+function renderCharts(r){
+  if(chartD) chartD.destroy();
+  if(chartE) chartE.destroy();
+  if(chartF) chartF.destroy();
+  const step=Math.max(1,Math.floor(r.tD.length/120));
+  const tl=r.tD.filter((_,i)=>i%step===0);
+  const rd=r.rD.filter((_,i)=>i%step===0);
+  const ed=r.eD.filter((_,i)=>i%step===0);
+  const fd=r.fD.filter((_,i)=>i%step===0);
+  const ds=(data,color,bg)=>({label:'',data,borderColor:color,backgroundColor:bg,fill:true,borderWidth:1.5,pointRadius:0,tension:0.35});
+  chartD=new Chart(document.getElementById('chartDecay'),{type:'line',data:{labels:tl,datasets:[ds(rd,'rgba(255,255,255,0.85)','rgba(255,255,255,0.04)')]},options:chartCfg('Tempo (s)','RPM')});
+  chartE=new Chart(document.getElementById('chartEnergy'),{type:'line',data:{labels:tl,datasets:[ds(ed,'rgba(167,139,250,0.9)','rgba(167,139,250,0.06)')]},options:chartCfg('Tempo (s)','Joule (J)')});
+  chartF=new Chart(document.getElementById('chartForce'),{type:'line',data:{labels:tl,datasets:[ds(fd,'rgba(251,146,60,0.9)','rgba(251,146,60,0.06)')]},options:chartCfg('Tempo (s)','Newton (N)')});
+}
+
+function renderRatings(r,rt){
+  const defs=[
+    {k:'attack', label:'Attack', c:'rgba(251,146,60,0.9)'},
+    {k:'defense',label:'Defense',c:'rgba(96,165,250,0.9)'},
+    {k:'stamina',label:'Stamina',c:'rgba(52,211,153,0.9)'},
+    {k:'balance',label:'Balance',c:'rgba(251,191,36,0.9)'},
+    {k:'burst',  label:'Burst',  c:'rgba(248,113,113,0.9)'},
+  ];
+  document.getElementById('ratingBars').innerHTML=defs.map(d=>`
+    <div class="rbar-row">
+      <span class="rbar-name">${d.label}</span>
+      <div class="rbar-bg"><div class="rbar-fill" style="background:${d.c}" data-target="${rt[d.k]}"></div></div>
+      <span class="rbar-score">${rt[d.k]}</span>
+    </div>`).join('');
+  setTimeout(()=>document.querySelectorAll('.rbar-fill').forEach(el=>el.style.width=el.dataset.target+'%'),80);
+  const overall=Math.round((rt.attack+rt.defense+rt.stamina+rt.balance)/4);
+  const grade=overall>=85?'S':overall>=70?'A':overall>=55?'B':overall>=40?'C':'D';
+  document.getElementById('scoreNum').textContent=overall;
+  document.getElementById('scoreGrade').textContent='Grade '+grade;
+  const circ=251.3;
+  setTimeout(()=>document.getElementById('scoreCircle').style.strokeDashoffset=circ-(overall/100)*circ,80);
+  document.getElementById('buildTypeName').textContent=getBuild(rt);
+}
+
+function renderTips(r,rt){
+  const ts=tips(r,rt);
+  document.getElementById('tipsGrid').innerHTML=ts.map(t=>`
+    <div class="tip-row ${t.t}">
+      <div class="tip-dot"></div>
+      <div class="tip-content"><strong>${t.title}</strong>${t.text}</div>
+    </div>`).join('');
+}
+
+function switchTab(name, btn){
+  document.querySelectorAll('.tab-pill').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+function navTo(section){
+  // simple navigation handler: focus known sections
+  if(section==='simulator') window.scrollTo({top:0,behavior:'smooth'});
+  else if(section==='physics') {
+    const el=document.querySelector('.right-col'); if(el) el.scrollIntoView({behavior:'smooth'});
+  } else if(section==='presets') {
+    const el=document.querySelector('.preset-strip'); if(el) el.scrollIntoView({behavior:'smooth'});
+  }
+}
+
+function openDocs(){
+  window.open('https://beyblade.fandom.com/','_blank');
+}
+
+window.addEventListener('load',()=>runSimulation());
+</script>
+</body>
+</html>
