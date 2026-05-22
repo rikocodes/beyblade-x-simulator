@@ -44,30 +44,3 @@ The simulator uses configurable values such as:
 3. Click `Run Simulation`.
 4. Review the ratings, charts, and build tips.
 5. Compare different setups to see how small part changes affect stamina, attack, and stability.
-
-## Local Development
-
-This project is a static site, so it should be served from a local web server rather than opened directly with `file://`.
-
-Example with Python:
-
-```bash
-python -m http.server 8000
-```
-
-Then open:
-
-`http://localhost:8000/beyblade_simulator.html`
-
-## Parts Data
-
-The repo includes a small updater script that can refresh `data/parts.json` from external sources:
-
-```bash
-npm install
-npm run fetch-parts
-```
-
-## Deployment
-
-The site is deployed with GitHub Pages through GitHub Actions. The workflow builds a static `dist/` output and publishes it automatically on pushes to `main`.
