@@ -11,13 +11,6 @@ Play it here:
 ## Screenshot
 <img width="1280" height="1200" alt="webcapture" src="https://github.com/user-attachments/assets/81f44d46-199e-49ab-8493-64486bb9054d" />
 
-
-Example:
-
-```md
-![Beyblade X Simulator Screenshot](./docs/simulator-screenshot.png)
-```
-
 ## What The Simulator Does
 
 - Lets you tune blade, ratchet, and bit-related values.
