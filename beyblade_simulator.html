@@ -452,11 +452,7 @@ input[type="number"]:focus, select:focus {
     <span class="spin-icon">⚙️</span>
     Beyblade<span style="color:var(--ink-muted)"> X</span>
   </div>
-  <div class="nav-center">
-    <a class="nav-link" href="#" onclick="navTo('simulator');return false">Simulator</a>
-    <a class="nav-link" href="#" onclick="navTo('physics');return false">Physics</a>
-    <a class="nav-link" href="#" onclick="navTo('presets');return false">Presets</a>
-  </div>
+  <!-- center nav removed per user request -->
   <div class="nav-right">
     <button class="btn-secondary" onclick="openDocs()">Beyblade Wiki</button>
     <button class="btn-primary" onclick="runSimulation()">Run Simulation</button>
@@ -492,12 +488,12 @@ input[type="number"]:focus, select:focus {
 
       <div class="field">
         <div class="field-label-row">
-          <span class="field-label">Massa Blade</span>
+          <span class="field-label">Blade Mass</span>
           <span class="info-btn">i
             <div class="tooltip-popup">
-              <span class="tt-title">Massa Blade</span>
-              Peso metallico della lama. Una massa maggiore aumenta inerzia e forza d'urto, ma riduce la stamina.
-              <span class="tt-fx">↑ Massa → ↑ Attacco, ↓ Stamina</span>
+              <span class="tt-title">Blade Mass</span>
+              Metal mass of the blade. Higher mass increases inertia and impact force but reduces stamina.
+              <span class="tt-fx">↑ Mass → ↑ Attack, ↓ Stamina</span>
             </div>
           </span>
         </div>
@@ -509,12 +505,12 @@ input[type="number"]:focus, select:focus {
 
       <div class="field">
         <div class="field-label-row">
-          <span class="field-label">Diametro Blade</span>
+          <span class="field-label">Blade Diameter</span>
           <span class="info-btn">i
             <div class="tooltip-popup">
-              <span class="tt-title">Diametro Blade</span>
-              Diametro esterno massimo. Maggiore = più momento d'inerzia e stamina più lunga.
-              <span class="tt-fx">↑ Diametro → ↑ Inerzia, ↑ Stamina</span>
+              <span class="tt-title">Blade Diameter</span>
+              Outer diameter. Larger diameter increases moment of inertia and usually yields longer stamina.
+              <span class="tt-fx">↑ Diameter → ↑ Inertia, ↑ Stamina</span>
             </div>
           </span>
         </div>
@@ -526,12 +522,12 @@ input[type="number"]:focus, select:focus {
 
       <div class="field">
         <div class="field-label-row">
-          <span class="field-label">Altezza Blade</span>
+          <span class="field-label">Blade Height</span>
           <span class="info-btn">i
             <div class="tooltip-popup">
-              <span class="tt-title">Altezza Blade</span>
-              Spessore verticale della lama. Influisce sull'altezza del baricentro.
-              <span class="tt-fx">↑ Altezza → ↑ Baricentro, ↓ Stabilità</span>
+              <span class="tt-title">Blade Height</span>
+              Vertical thickness of the blade. Affects the center of mass height.
+              <span class="tt-fx">↑ Height → ↑ CoM, ↓ Stability</span>
             </div>
           </span>
         </div>
@@ -546,12 +542,12 @@ input[type="number"]:focus, select:focus {
 
       <div class="field">
         <div class="field-label-row">
-          <span class="field-label">Diametro Ratchet</span>
+          <span class="field-label">Ratchet Diameter</span>
           <span class="info-btn">i
             <div class="tooltip-popup">
-              <span class="tt-title">Diametro Ratchet</span>
-              Larghezza del componente centrale. Contribuisce al momento d'inerzia totale.
-              <span class="tt-fx">↑ Diametro → ↑ Stabilità rotazionale</span>
+              <span class="tt-title">Ratchet Diameter</span>
+              Width of the central ratchet. Contributes to the total rotational inertia.
+              <span class="tt-fx">↑ Diameter → ↑ Rotational stability</span>
             </div>
           </span>
         </div>
@@ -563,12 +559,12 @@ input[type="number"]:focus, select:focus {
 
       <div class="field">
         <div class="field-label-row">
-          <span class="field-label">Massa Ratchet</span>
+          <span class="field-label">Ratchet Mass</span>
           <span class="info-btn">i
             <div class="tooltip-popup">
-              <span class="tt-title">Massa Ratchet</span>
-              Peso del ratchet. Più pesante = più inerzia e resistenza al burst.
-              <span class="tt-fx">↑ Massa → ↑ Defense, ↓ Stamina lieve</span>
+              <span class="tt-title">Ratchet Mass</span>
+              Mass of the ratchet. Heavier ratchets add inertia and improve burst resistance.
+              <span class="tt-fx">↑ Mass → ↑ Defense, slight ↓ Stamina</span>
             </div>
           </span>
         </div>
@@ -580,12 +576,12 @@ input[type="number"]:focus, select:focus {
 
       <div class="field">
         <div class="field-label-row">
-          <span class="field-label">Altezza Ratchet</span>
+          <span class="field-label">Ratchet Height</span>
           <span class="info-btn">i
             <div class="tooltip-popup">
-              <span class="tt-title">Altezza Ratchet</span>
-              Valori tipici: 60, 70, 80 mm. Valori più alti alzano il baricentro.
-              <span class="tt-fx">60mm = stabile · 80mm = instabile</span>
+              <span class="tt-title">Ratchet Height</span>
+              Typical values: 60, 70, 80 mm. Taller ratchets raise the center of mass.
+              <span class="tt-fx">60mm = stable · 80mm = less stable</span>
             </div>
           </span>
         </div>
@@ -596,37 +592,18 @@ input[type="number"]:focus, select:focus {
       </div>
 
       <!-- BIT -->
-      <p class="section-eyebrow">Bit (Punta)</p>
+      <p class="section-eyebrow">Bit (Tip)</p>
+
+      <!-- Tipo Bit selector removed per request; tip radius can be set directly below -->
 
       <div class="field">
         <div class="field-label-row">
-          <span class="field-label">Tipo Bit</span>
+          <span class="field-label">Tip Radius</span>
           <span class="info-btn">i
             <div class="tooltip-popup">
-              <span class="tt-title">Tipo Bit</span>
-              La punta è il fattore principale per la stamina — imposta automaticamente il raggio di contatto.
-              <span class="tt-fx">Needle = max stamina · Ball = max stabilità</span>
-            </div>
-          </span>
-        </div>
-        <div class="bit-grid" id="bitGrid">
-          <div class="bit-opt" data-r="0.5" onclick="selectBit(this)"><span class="bi">📍</span><span class="bn">Point</span></div>
-          <div class="bit-opt active" data-r="1" onclick="selectBit(this)"><span class="bi">🔵</span><span class="bn">Flat</span></div>
-          <div class="bit-opt" data-r="2" onclick="selectBit(this)"><span class="bi">⭕</span><span class="bn">Wide</span></div>
-          <div class="bit-opt" data-r="3" onclick="selectBit(this)"><span class="bi">🟤</span><span class="bn">Ball</span></div>
-          <div class="bit-opt" data-r="0.7" onclick="selectBit(this)"><span class="bi">🔺</span><span class="bn">Needle</span></div>
-          <div class="bit-opt" data-r="1.5" onclick="selectBit(this)"><span class="bi">🔷</span><span class="bn">Semi-F</span></div>
-        </div>
-      </div>
-
-      <div class="field">
-        <div class="field-label-row">
-          <span class="field-label">Raggio Punta</span>
-          <span class="info-btn">i
-            <div class="tooltip-popup">
-              <span class="tt-title">Raggio Punta Contatto</span>
-              Raggio della superficie di contatto col piatto. Parametro critico per la stamina: punta più fine = meno attrito = più durata.
-              <span class="tt-fx">0.5 mm (fine) → ~3× più stamina rispetto a 3 mm (ball)</span>
+              <span class="tt-title">Tip Contact Radius</span>
+              Radius of the tip contact patch with the stadium floor. Critical for stamina: finer tips = less friction = longer spin.
+              <span class="tt-fx">0.5 mm (fine) → ~3× stamina vs 3 mm (ball)</span>
             </div>
           </span>
         </div>
@@ -638,12 +615,12 @@ input[type="number"]:focus, select:focus {
 
       <div class="field">
         <div class="field-label-row">
-          <span class="field-label">Altezza Bit</span>
+          <span class="field-label">Bit Height</span>
           <span class="info-btn">i
             <div class="tooltip-popup">
-              <span class="tt-title">Altezza Bit</span>
-              Altezza della punta. Influisce sulla posizione verticale del baricentro.
-              <span class="tt-fx">↑ Altezza → baricentro più alto, meno stabilità laterale</span>
+              <span class="tt-title">Bit Height</span>
+              Height of the tip. Affects vertical position of the center of mass.
+              <span class="tt-fx">↑ Height → higher CoM, less lateral stability</span>
             </div>
           </span>
         </div>
@@ -654,16 +631,16 @@ input[type="number"]:focus, select:focus {
       </div>
 
       <!-- LANCIO -->
-      <p class="section-eyebrow">Lancio</p>
+      <p class="section-eyebrow">Launch</p>
 
       <div class="field">
         <div class="field-label-row">
-          <span class="field-label">RPM Lancio</span>
+          <span class="field-label">Launch RPM</span>
           <span class="info-btn">i
             <div class="tooltip-popup">
-              <span class="tt-title">RPM Lancio</span>
-              Velocità di rotazione iniziale. Un buon lancio manuale: 7000–10000 RPM.
-              <span class="tt-fx">↑ RPM → ↑ Energia iniziale, ↑ Forza urto</span>
+              <span class="tt-title">Launch RPM</span>
+              Initial rotational speed. A strong manual launch: 7000–10000 RPM.
+              <span class="tt-fx">↑ RPM → ↑ Initial energy, ↑ Impact force</span>
             </div>
           </span>
         </div>
@@ -675,23 +652,23 @@ input[type="number"]:focus, select:focus {
 
       <div class="field">
         <div class="field-label-row">
-          <span class="field-label">Resistenza Aria</span>
+          <span class="field-label">Air Resistance</span>
           <span class="info-btn">i
             <div class="tooltip-popup">
-              <span class="tt-title">Resistenza Aria (k)</span>
-              Coefficiente di drag aerodinamico. Dipende dalla forma della lama: spigolosa = più freno.
-              <span class="tt-fx">Liscio 0.1 → poca perdita · Spigoloso 2.0 → decadimento rapido</span>
+              <span class="tt-title">Air Resistance (k)</span>
+              Aerodynamic drag coefficient. Depends on blade shape: smoother = less drag.
+              <span class="tt-fx">Smooth 0.1 → low loss · Edgy 2.0 → fast decay</span>
             </div>
           </span>
         </div>
         <div class="field-row">
           <select id="resistenzaAria">
-            <option value="0.1">0.1 — Molto Liscio</option>
-            <option value="0.3">0.3 — Liscio</option>
-            <option value="0.5" selected>0.5 — Normale</option>
-            <option value="1">1.0 — Spigoloso</option>
-            <option value="1.5">1.5 — Molto Spigoloso</option>
-            <option value="2">2.0 — Massimo Drag</option>
+            <option value="0.1">0.1 — Very Smooth</option>
+            <option value="0.3">0.3 — Smooth</option>
+            <option value="0.5" selected>0.5 — Normal</option>
+            <option value="1">1.0 — Edgy</option>
+            <option value="1.5">1.5 — Very Edgy</option>
+            <option value="2">2.0 — Max Drag</option>
           </select>
         </div>
       </div>
@@ -706,41 +683,41 @@ input[type="number"]:focus, select:focus {
       <div class="metrics-band">
         <!-- SPOTLIGHT (stamina / duration) -->
         <div class="spotlight-card violet" id="spotlightCard">
-          <span class="spotlight-label">Durata Vita</span>
+          <span class="spotlight-label">Run Time</span>
           <div>
             <div class="spotlight-value" id="spotlightVal">—</div>
-            <div class="spotlight-unit" id="spotlightUnit">secondi</div>
+            <div class="spotlight-unit" id="spotlightUnit">seconds</div>
           </div>
         </div>
         <!-- STAT MINI GRID -->
         <div class="stat-grid">
           <div class="stat-card">
-            <div class="stat-label">Massa Tot.</div>
+            <div class="stat-label">Total Mass</div>
             <div class="stat-value" id="sValMassa">—</div>
             <div class="stat-unit">g</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">Inerzia</div>
+            <div class="stat-label">Inertia</div>
             <div class="stat-value" id="sValI">—</div>
             <div class="stat-unit">kg·m²</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">Baricentro</div>
+            <div class="stat-label">Center of Mass</div>
             <div class="stat-value" id="sValCoM">—</div>
             <div class="stat-unit">mm</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">Energia Cin.</div>
+            <div class="stat-label">Kinetic Energy</div>
             <div class="stat-value" id="sValEk">—</div>
             <div class="stat-unit">J</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">Forza Urto</div>
+            <div class="stat-label">Impact Force</div>
             <div class="stat-value" id="sValF">—</div>
             <div class="stat-unit">N</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">Coppia Attrito</div>
+            <div class="stat-label">Friction Torque</div>
             <div class="stat-value" id="sValTau">—</div>
             <div class="stat-unit">N·m</div>
           </div>
@@ -751,8 +728,8 @@ input[type="number"]:focus, select:focus {
       <div class="charts-card" id="chartsCard" style="display:none">
         <div class="tabs-strip">
           <button class="tab-pill active" onclick="switchTab('decay',this)">RPM Decay</button>
-          <button class="tab-pill" onclick="switchTab('energy',this)">Energia</button>
-          <button class="tab-pill" onclick="switchTab('force',this)">Forza</button>
+          <button class="tab-pill" onclick="switchTab('energy',this)">Energy</button>
+          <button class="tab-pill" onclick="switchTab('force',this)">Force</button>
           <button class="tab-pill" onclick="switchTab('ratings',this)">Ratings</button>
         </div>
 
@@ -794,14 +771,14 @@ input[type="number"]:focus, select:focus {
 
       <!-- TIPS -->
       <div id="tipsWrap" style="display:none">
-        <p class="section-title" style="font-size:22px;letter-spacing:-0.8px;margin-bottom:var(--sp-md);">Consigli</p>
+        <p class="section-title" style="font-size:22px;letter-spacing:-0.8px;margin-bottom:var(--sp-md);">Tips</p>
         <div class="tips-grid" id="tipsGrid"></div>
       </div>
 
       <!-- EMPTY STATE -->
       <div class="empty-state" id="emptyState">
         <div style="font-size:2.5rem;opacity:0.15">⚙</div>
-        <span>Configura i parametri e avvia la simulazione</span>
+        <span>Configure parameters and start the simulation</span>
       </div>
 
     </div>
@@ -1071,17 +1048,17 @@ function getBuild(rt){
 
 function tips(r,rt){
   const out=[];
-  if(r.survived>120) out.push({t:'good',title:'Eccellente Stamina',text:`Durata ${r.survived}s — ottimo per battaglie lunghe.`});
-  else if(r.survived>60) out.push({t:'warn',title:'Stamina Moderata',text:`Durata ${r.survived}s. Prova un bit a punta più fine.`});
-  else out.push({t:'bad',title:'Stamina Bassa',text:`Si ferma a ${r.survived}s. Riduci raggio punta o alleggerisci.`});
+  if(r.survived>120) out.push({t:'good',title:'Excellent Stamina',text:`Run time ${r.survived}s — great for long matches.`});
+  else if(r.survived>60) out.push({t:'warn',title:'Moderate Stamina',text:`Run time ${r.survived}s. Try a finer tip radius.`});
+  else out.push({t:'bad',title:'Low Stamina',text:`Stops at ${r.survived}s. Reduce tip radius or lighten the build.`});
   const rp=r.rP*1000;
-  if(rp<=0.7) out.push({t:'good',title:'Punta Needle / Point',text:'Attrito minimo — massima stamina, meno stabilità nelle collisioni.'});
-  else if(rp>=2.5) out.push({t:'warn',title:'Punta Wide / Ball',text:'Stabilità alta ma perde giri rapidamente. Ideale per defense.'});
-  if(rt.attack>70) out.push({t:'good',title:'Alta Forza Urto',text:`${r.F0.toFixed(1)} N iniziali — può buttare fuori avversari pesanti.`});
-  if(r.hCoM>65) out.push({t:'warn',title:'Baricentro Alto',text:`CoM a ${r.hCoM.toFixed(1)} mm — rischio oscillazione a giri bassi.`});
-  if(r.hCoM<45) out.push({t:'good',title:'Baricentro Basso',text:`CoM a ${r.hCoM.toFixed(1)} mm — ottima stabilità giroscopica.`});
-  if(r.p.rpmLancio>10000) out.push({t:'good',title:'Lancio Potente',text:`${r.p.rpmLancio} RPM — vantaggio nei primi secondi.`});
-  if(r.p.k>1) out.push({t:'bad',title:'Alto Drag Aerodinamico',text:'Profilo spigoloso accelera la perdita di giri.'});
+  if(rp<=0.7) out.push({t:'good',title:'Needle / Point Tip',text:'Minimal contact area — maximum stamina, less stability in collisions.'});
+  else if(rp>=2.5) out.push({t:'warn',title:'Wide / Ball Tip',text:'High stability but loses speed faster. Good for defense.'});
+  if(rt.attack>70) out.push({t:'good',title:'High Impact Force',text:`${r.F0.toFixed(1)} N initial — can knock out heavy opponents.`});
+  if(r.hCoM>65) out.push({t:'warn',title:'High Center of Mass',text:`CoM at ${r.hCoM.toFixed(1)} mm — risk of wobble at low RPM.`});
+  if(r.hCoM<45) out.push({t:'good',title:'Low Center of Mass',text:`CoM at ${r.hCoM.toFixed(1)} mm — excellent gyroscopic stability.`});
+  if(r.p.rpmLancio>10000) out.push({t:'good',title:'Powerful Launch',text:`${r.p.rpmLancio} RPM — advantage in the opening seconds.`});
+  if(r.p.k>1) out.push({t:'bad',title:'High Aerodynamic Drag',text:'Edgy profile accelerates RPM loss.'});
   return out;
 }
 
@@ -1133,9 +1110,9 @@ function renderCharts(r){
   const ed=r.eD.filter((_,i)=>i%step===0);
   const fd=r.fD.filter((_,i)=>i%step===0);
   const ds=(data,color,bg)=>({label:'',data,borderColor:color,backgroundColor:bg,fill:true,borderWidth:1.5,pointRadius:0,tension:0.35});
-  chartD=new Chart(document.getElementById('chartDecay'),{type:'line',data:{labels:tl,datasets:[ds(rd,'rgba(255,255,255,0.85)','rgba(255,255,255,0.04)')]},options:chartCfg('Tempo (s)','RPM')});
-  chartE=new Chart(document.getElementById('chartEnergy'),{type:'line',data:{labels:tl,datasets:[ds(ed,'rgba(167,139,250,0.9)','rgba(167,139,250,0.06)')]},options:chartCfg('Tempo (s)','Joule (J)')});
-  chartF=new Chart(document.getElementById('chartForce'),{type:'line',data:{labels:tl,datasets:[ds(fd,'rgba(251,146,60,0.9)','rgba(251,146,60,0.06)')]},options:chartCfg('Tempo (s)','Newton (N)')});
+  chartD=new Chart(document.getElementById('chartDecay'),{type:'line',data:{labels:tl,datasets:[ds(rd,'rgba(255,255,255,0.85)','rgba(255,255,255,0.04)')]},options:chartCfg('Time (s)','RPM')});
+  chartE=new Chart(document.getElementById('chartEnergy'),{type:'line',data:{labels:tl,datasets:[ds(ed,'rgba(167,139,250,0.9)','rgba(167,139,250,0.06)')]},options:chartCfg('Time (s)','Joule (J)')});
+  chartF=new Chart(document.getElementById('chartForce'),{type:'line',data:{labels:tl,datasets:[ds(fd,'rgba(251,146,60,0.9)','rgba(251,146,60,0.06)')]},options:chartCfg('Time (s)','Newton (N)')});
 }
 
 function renderRatings(r,rt){
