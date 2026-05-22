@@ -9,7 +9,8 @@ Play it here:
 [https://rikocodes.github.io/beyblade-x-simulator/](https://rikocodes.github.io/beyblade-x-simulator/)
 
 ## Screenshot
-<img width="1280" height="1200" alt="webcapture" src="https://github.com/user-attachments/assets/81f44d46-199e-49ab-8493-64486bb9054d" />
+<img width="1280" height="1200" alt="webcapture" src="https://github.com/user-attachments/assets/370a03bb-7f54-4670-9205-7e8bb76d4f09" />
+
 
 ## What The Simulator Does
 
