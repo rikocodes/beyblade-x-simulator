@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Beyblade X — Physics Simulator</title>
+<title>Beyblade X - Physics Simulator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Mona+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
@@ -821,10 +821,17 @@ let PRESETS = {
 // meta populated from local data / parts
 const PARTS_META = { avgDuration: null, aeroMultiplier: null };
 
+function assetUrl(relativePath){
+  const basePath = window.location.pathname.endsWith('.html')
+    ? window.location.pathname.replace(/[^/]+$/, '')
+    : window.location.pathname.replace(/\/?$/, '/');
+  return `${window.location.origin}${basePath}${relativePath}`;
+}
+
 // Try to load external parts data (produced by scripts/fetch_parts.js)
 async function loadPartsFromServer(){
   try{
-    const res=await fetch('/data/parts.json', {cache:'no-store'});
+    const res=await fetch(assetUrl('data/parts.json'), {cache:'no-store'});
     if(!res.ok) return;
     const data=await res.json();
     // merge suggested presets if present
@@ -866,7 +873,7 @@ setInterval(loadPartsFromServer, 30*60*1000);
 // Parse local data file for empirical part data (data/some data.txt)
 async function loadLocalData(){
   try{
-    const res=await fetch('/data/some%20data.txt', {cache:'no-store'});
+    const res=await fetch(assetUrl('data/some%20data.txt'), {cache:'no-store'});
     if(!res.ok) return;
     const txt=await res.text();
     // simple parsing to extract entries

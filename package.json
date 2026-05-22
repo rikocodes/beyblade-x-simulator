@@ -4,6 +4,7 @@
   "description": "Background updater that scrapes external parts pages and writes data/parts.json for the simulator",
   "main": "scripts/fetch_parts.js",
   "scripts": {
+    "build:pages": "node scripts/build-pages.js",
     "fetch-parts": "node scripts/fetch_parts.js"
   },
   "dependencies": {
