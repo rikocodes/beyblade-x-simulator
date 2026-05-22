@@ -9,8 +9,8 @@ Play it here:
 [https://rikocodes.github.io/beyblade-x-simulator/](https://rikocodes.github.io/beyblade-x-simulator/)
 
 ## Screenshot
+<img width="1280" height="1200" alt="webcapture" src="https://github.com/user-attachments/assets/81f44d46-199e-49ab-8493-64486bb9054d" />
 
-Add your webpage screenshot here once you export it.
 
 Example:
 
